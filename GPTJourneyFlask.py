@@ -6,7 +6,6 @@ from flask import Flask, render_template, request, session
 
 # Initialize OpenAI client
 load_dotenv('.env')
-client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 
 # Create a new Flask app and set the secret key
 app = Flask(__name__)
@@ -46,13 +45,13 @@ def home():
     button_states = {}
 
     if request.method == 'GET':
-
+        # initialize 
         session['message_history'] = [{"role": "user", "content": """You are an interactive story game bot that proposes some hypothetical fantastical situation where the user needs to pick from 2-4 options that you provide. Once the user picks one of those options, you will then state what happens next and present new options, and this then repeats. If you understand, say, OK, and begin when I say "begin." When you present the story and options, present just the story and start immediately with the story, no further commentary, and then options like "Option 1:" "Option 2:" ...etc. Keep the story maxed at 5 scenarios."""},
                                       {"role": "assistant", "content": f"""OK, I understand. Begin when you're ready."""}]
         message_history = session['message_history']
         reply_content, message_history = chat("Begin", message_history)
-        text = reply_content.split("Option 1")[0]
-        options = re.findall(r"Option \d:.*", reply_content)
+        text = reply_content.split("Option 1")[0]#
+        options = re.findall(r"Option \d:.*", reply_content)#
 
         for i, option in enumerate(options):
             button_messages[f"button{i+1}"] = option
@@ -70,14 +69,14 @@ def home():
         button_states[button_name] = True
         message = button_messages.get(button_name)
         reply_content, message_history = chat(message, message_history)
-        text = reply_content.split("Option 1")[0]
-        options = re.findall(r"Option \d:.*", reply_content)
+        text = reply_content.split("Option 1")[0]#
+        options = re.findall(r"Option \d:.*", reply_content)#
         button_messages = {}
         for i, option in enumerate(options):
             button_messages[f"button{i+1}"] = option
         for button_name in button_messages.keys():
             button_states[button_name] = False
-
+    print(text)
     session['message_history'] = message_history
     session['button_messages'] = button_messages
     image_url = get_img(text)

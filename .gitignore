@@ -1,2 +1,5 @@
 /gptJourney
 .env
+/__pycache__
+gptJourney20250706.ipynb
+GPTJourneyFlask.py

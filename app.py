@@ -39,23 +39,19 @@ def process_reply(state: GPTJourneyState, reply_content: str):
     return text
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def home():
     llm_options = ["GPT-3", "GPT-4", "BERT", "T5"]
     image_gen_options = ["DALL-E", "Stable Diffusion", "MidJourney"]
-    
-    if request.method == 'POST':
-        # Get selected values from dropdowns
-        dropdown1 = request.form.get('dropdown1')
-        dropdown2 = request.form.get('dropdown2')
-        return render_template('journey.html', dropdown1=dropdown1, dropdown2=dropdown2)
-    
     return render_template('home.html', llm_options=llm_options, image_gen_options=image_gen_options)
 
 @app.route('/journey', methods=['GET', 'POST'])
 def journey():
     title = "GPT-Journey"
     message = None
+
+    llm = request.args.get('llm') 
+    image_gen = request.args.get('image_gen')
 
     # Initialize session and local state manager
     if 'message_history' not in session:
@@ -96,7 +92,9 @@ def journey():
         image_url=image_url,
         button_messages=state.get_all_button_messages(),
         button_states=state.get_all_button_states(),
-        message=message
+        message=message,
+        dropdown1 = llm,
+        dropdown2 = image_gen
     )
 
 if __name__ == "__main__":

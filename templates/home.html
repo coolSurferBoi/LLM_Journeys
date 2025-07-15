@@ -57,7 +57,6 @@
         .button:hover {
             background-color: #0056b3;
         }
-
     </style>
 </head>
 <body>
@@ -65,27 +64,29 @@
     <div class="container">
         <h1>Select Your Models</h1>
         
-        <!-- Dropdown for LLM selection -->
-        <div class="dropdown-container">
-            <label for="llm">Choose a Language Model:</label>
-            <select id="llm" name="llm">
-                {% for llm in llm_options %}
-                    <option value="{{ llm }}">{{ llm }}</option>
-                {% endfor %}
-            </select>
-        </div>
+        <form action="/journey" method="get">
+            <!-- Dropdown for LLM selection -->
+            <div class="dropdown-container">
+                <label for="llm">Choose a Language Model:</label>
+                <select id="llm" name="llm">
+                    {% for llm in llm_options %}
+                        <option value="{{ llm }}">{{ llm }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-        <!-- Dropdown for Image Generation Model selection -->
-        <div class="dropdown-container">
-            <label for="image_gen">Choose an Image Generation Model:</label>
-            <select id="image_gen" name="image_gen">
-                {% for image_gen in image_gen_options %}
-                    <option value="{{ image_gen }}">{{ image_gen }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <a href="/journey" class="button">Go to Journey Page</a>
+            <!-- Dropdown for Image Generation Model selection -->
+            <div class="dropdown-container">
+                <label for="image_gen">Choose an Image Generation Model:</label>
+                <select id="image_gen" name="image_gen">
+                    {% for image_gen in image_gen_options %}
+                        <option value="{{ image_gen }}">{{ image_gen }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="button">Go to Journey Page</button>
+        </form>
     </div>
 
 </body>

@@ -38,10 +38,20 @@ def process_reply(state: GPTJourneyState, reply_content: str):
     state.reset_button_states()
     return text
 
-@app.route('/', methods=['GET', 'POST'])
+
+@app.route('/')
 def home():
+    llm_options = ["GPT-3", "GPT-4", "BERT", "T5"]
+    image_gen_options = ["DALL-E", "Stable Diffusion", "MidJourney"]
+    return render_template('home.html', llm_options=llm_options, image_gen_options=image_gen_options)
+
+@app.route('/journey', methods=['GET', 'POST'])
+def journey():
     title = "GPT-Journey"
     message = None
+
+    llm = request.args.get('llm') 
+    image_gen = request.args.get('image_gen')
 
     # Initialize session and local state manager
     if 'message_history' not in session:
@@ -76,14 +86,16 @@ def home():
     session['button_messages'] = state.get_all_button_messages()
     print(f'Number of Selections : {OpenAPIConnection.get_interaction_count()}')
     return render_template(
-        'home.html',
+        'journey.html',
         title=title,
         text=text,
         image_url=image_url,
         button_messages=state.get_all_button_messages(),
         button_states=state.get_all_button_states(),
-        message=message
+        message=message,
+        dropdown1 = llm,
+        dropdown2 = image_gen
     )
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

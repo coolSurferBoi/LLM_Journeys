@@ -35,7 +35,7 @@ def process_reply(state: GPTJourneyState, reply_content: str):
 
 @app.route('/')
 def home():
-    llm_options = ["o4-mini"]
+    llm_options = ["o4-mini",]
     image_gen_options = ["dall-e-3","black-forest-labs/FLUX.1-dev"]
     return render_template('home.html', llm_options=llm_options, image_gen_options=image_gen_options)
 

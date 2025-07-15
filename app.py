@@ -4,19 +4,13 @@ from dotenv import load_dotenv
 import os
 import re
 from flask import Flask, render_template, request, session, redirect, url_for
-from GPTJourneyUtils import GPTJourneyUtils
+from APIJourneyUtils import APIJourneyUtils
 from GPTJourneyState import GPTJourneyState
-
-# Initialize OpenAI client
-load_dotenv('.env')
-client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
-# Use the OpenAPI Client
-OpenAPIConnection = GPTJourneyUtils(client)
-# Programatically keep tabs on States of the parameters utilized in the WebApp
-WebAppStates = GPTJourneyState()
 
 app = Flask(__name__)
 app.secret_key = "mysecretkey"
+api_obj = APIJourneyUtils()
+
 INITIAL_PROMPT = """You are an interactive story game bot. Present a fantastical scenario where the user chooses from 3 options.
 After each choice, continue the story and offer 3 new options. Make sure you keep the story to a maximum of 5 steps/selections.
 Start directly with the story—no extra commentary—and format choices as 'Option 1:', 'Option 2:', etc.
@@ -41,8 +35,8 @@ def process_reply(state: GPTJourneyState, reply_content: str):
 
 @app.route('/')
 def home():
-    llm_options = ["GPT-3", "GPT-4", "BERT", "T5"]
-    image_gen_options = ["DALL-E", "Stable Diffusion", "MidJourney"]
+    llm_options = ["o4-mini"]
+    image_gen_options = ["dall-e-3","black-forest-labs/FLUX.1-dev"]
     return render_template('home.html', llm_options=llm_options, image_gen_options=image_gen_options)
 
 @app.route('/journey', methods=['GET', 'POST'])
@@ -52,6 +46,8 @@ def journey():
 
     llm = request.args.get('llm') 
     image_gen = request.args.get('image_gen')
+    api_obj.setup_LLM_connection(llm)
+    api_obj.setup_ImageGen_connection(image_gen)
 
     # Initialize session and local state manager
     if 'message_history' not in session:
@@ -71,20 +67,20 @@ def journey():
         state.setup_button_state(button_name)
         message = state.get_button_message(button_name)
 
-        reply_content, message_history = OpenAPIConnection.chat(message, message_history)
+        reply_content, message_history = api_obj.chat(llm,message, message_history)
         text = process_reply(state, reply_content)
 
     # Handle GET (initial load)
     else:
-        reply_content, message_history = OpenAPIConnection.chat("Begin", message_history)
+        reply_content, message_history = api_obj.chat(llm,"Begin", message_history)
         text = process_reply(state, reply_content)
 
     # Get an image for the scene
-    image_url = OpenAPIConnection.get_img(text)
+    image_url = api_obj.get_img(image_gen,text)
     # Update session state
     session['message_history'] = message_history
     session['button_messages'] = state.get_all_button_messages()
-    print(f'Number of Selections : {OpenAPIConnection.get_interaction_count()}')
+    print(f'Number of Selections : {api_obj.get_interaction_count(llm)}')
     return render_template(
         'journey.html',
         title=title,

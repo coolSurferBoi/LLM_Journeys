@@ -1,3 +1,4 @@
+
 class GPTJourneyUtils:
     """
     A utility class to interact with the OpenAI API for generating images and chat completions.

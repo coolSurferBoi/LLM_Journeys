@@ -1,7 +1,4 @@
 from flask import Flask
-from openai import OpenAI
-from dotenv import load_dotenv
-import os
 import re
 from flask import Flask, render_template, request, session, redirect, url_for
 from APIJourneyUtils import APIJourneyUtils

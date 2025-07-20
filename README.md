@@ -91,8 +91,7 @@ LLM_Journeys/
 
 - Learn by building and experimenting  
 - Understand how LLM APIs work and how to integrate them  
-- Explore prompt engineering, embeddings, fine-tuning, and vector search  
-- Develop modular tools for reuse across projects  
+- Understand how LLMs work and what differentiates them between each other.
 
 ## 🤝 Contributing
 

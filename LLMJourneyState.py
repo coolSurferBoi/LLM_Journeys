@@ -1,4 +1,4 @@
-class GPTJourneyState:
+class LLMJourneyState:
     """
     Manages the state and associated messages of interactive buttons used in a GPT-powered journey.
 

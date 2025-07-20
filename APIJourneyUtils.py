@@ -1,4 +1,4 @@
-from OpenAIConnection import OpenAIConnection
+from OpenAiJourneyUtils import OpenAiJourneyUtils
 from HuggingFaceJourneysUtils import HuggingFaceJourneysUtils
 class APIJourneyUtils:
     def __init__(self):
@@ -9,17 +9,17 @@ class APIJourneyUtils:
     def setup_LLM_connection(self, model_name):
         if model_name not in self.LLM_connections:
             if model_name == 'o4-mini':
-                connection = OpenAIConnection()
-            elif model_name == '':
-                pass
+                connection = OpenAiJourneyUtils()
+            elif model_name == 'mistralai/Mixtral-8x7B-Instruct-v0.1':
+                connection = HuggingFaceJourneysUtils(model_name)
             self.LLM_connections[model_name] = connection
 
     def setup_ImageGen_connection(self, model_name):
         if model_name not in self.ImageGen_connections:
             if model_name == 'dall-e-3':
-                connection = OpenAIConnection()
+                connection = OpenAiJourneyUtils()
             elif model_name == 'black-forest-labs/FLUX.1-dev':
-                connection = HuggingFaceJourneysUtils()
+                connection = HuggingFaceJourneysUtils(model_name)
             self.ImageGen_connections[model_name] = connection
 
     def get_LLM_connection(self,model_name):

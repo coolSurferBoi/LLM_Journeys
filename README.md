@@ -103,5 +103,3 @@ While this is primarily a personal learning project, you're welcome to fork the 
 This project is licensed under the MIT License.
 
 ---
-
-Happy Prompting! 🚀

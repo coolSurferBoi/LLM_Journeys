@@ -2,7 +2,7 @@ from flask import Flask
 import re
 from flask import Flask, render_template, request, session, redirect, url_for
 from APIJourneyUtils import APIJourneyUtils
-from GPTJourneyState import GPTJourneyState
+from LLMJourneyState import LLMJourneyState
 
 app = Flask(__name__)
 app.secret_key = "mysecretkey"
@@ -20,7 +20,7 @@ def init_session_state():
     ]
     session['button_messages'] = {}
 
-def process_reply(state: GPTJourneyState, reply_content: str):
+def process_reply(state: LLMJourneyState, reply_content: str):
     """Extracts story and options from reply and updates the button state."""
     text = reply_content.split("Option 1")[0]
     options = re.findall(r"Option \d:.*", reply_content)
@@ -29,16 +29,15 @@ def process_reply(state: GPTJourneyState, reply_content: str):
     state.reset_button_states()
     return text
 
-
 @app.route('/')
 def home():
-    llm_options = ["o4-mini"]
+    llm_options = ["o4-mini","mistralai/Mixtral-8x7B-Instruct-v0.1"]
     image_gen_options = ["dall-e-3","black-forest-labs/FLUX.1-dev"]
     return render_template('home.html', llm_options=llm_options, image_gen_options=image_gen_options)
 
 @app.route('/journey', methods=['GET', 'POST'])
 def journey():
-    title = "GPT-Journey"
+    title = "LLM Journey"
     message = None
 
     llm = request.args.get('llm') 
@@ -49,7 +48,7 @@ def journey():
     # Initialize session and local state manager
     if 'message_history' not in session:
         init_session_state()
-    state = GPTJourneyState()
+    state = LLMJourneyState()
     state.set_button_messages(session.get('button_messages', {}))
     state.reset_button_states()
 
@@ -66,29 +65,40 @@ def journey():
 
         reply_content, message_history = api_obj.chat(llm,message, message_history)
         text = process_reply(state, reply_content)
-
+        
     # Handle GET (initial load)
     else:
         reply_content, message_history = api_obj.chat(llm,"Begin", message_history)
         text = process_reply(state, reply_content)
-
-    # Get an image for the scene
     image_url = api_obj.get_img(image_gen,text)
-    # Update session state
     session['message_history'] = message_history
     session['button_messages'] = state.get_all_button_messages()
     print(f'Number of Selections : {api_obj.get_interaction_count(llm)}')
-    return render_template(
-        'journey.html',
-        title=title,
-        text=text,
-        image_url=image_url,
-        button_messages=state.get_all_button_messages(),
-        button_states=state.get_all_button_states(),
-        message=message,
-        dropdown1 = llm,
-        dropdown2 = image_gen
-    )
+    if not state.get_all_button_messages():
+        return render_template(
+            'journey.html',
+            title=title,
+            text=text,
+            image_url=image_url,
+            button_messages=state.get_all_button_messages(),
+            button_states=state.get_all_button_states(),
+            message=message,
+            dropdown1 = llm,
+            dropdown2 = image_gen,
+            ending = True
+        )
+    else:
+        return render_template(
+            'journey.html',
+            title=title,
+            text=text,
+            image_url=image_url,
+            button_messages=state.get_all_button_messages(),
+            button_states=state.get_all_button_states(),
+            message=message,
+            dropdown1 = llm,
+            dropdown2 = image_gen
+        )
 
 if __name__ == "__main__":
     app.run(debug=True)

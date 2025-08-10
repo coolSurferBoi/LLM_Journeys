@@ -53,7 +53,7 @@ class OpenAiJourneyUtils:
 
         message_history.append({"role": role, "content": inp})
         try:
-
+ 
             # Generate chat completion
             completion = self.client.chat.completions.create(
                 model=model_name,

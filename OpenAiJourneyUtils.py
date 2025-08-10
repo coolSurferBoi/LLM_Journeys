@@ -57,7 +57,7 @@ class OpenAiJourneyUtils:
             # Generate chat completion
             completion = self.client.chat.completions.create(
                 model=model_name,
-                messages=message_history
+                messages=message_history,
             )
             
             reply_content = completion.choices[0].message.content

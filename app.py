@@ -58,7 +58,8 @@ def journey():
 
     llm = request.args.get('llm') 
     image_gen = request.args.get('image_gen')
-    g.api_obj.setup_LLM_connection(llm)
+    temperature = request.args.get('temperature', type=float) 
+    g.api_obj.setup_LLM_connection(llm,temperature)
     g.api_obj.setup_ImageGen_connection(image_gen)
 
     state = LLMJourneyState()
@@ -86,7 +87,6 @@ def journey():
     image_url = g.api_obj.get_img(image_gen,text)
     session['message_history'] = message_history
     session['button_messages'] = state.get_all_button_messages()
-    print(state.get_all_button_messages())
     if not state.get_all_button_messages():
         return render_template(
             'journey.html',
@@ -98,7 +98,8 @@ def journey():
             message=message,
             dropdown1 = llm,
             dropdown2 = image_gen,
-            ending = True
+            ending = True,
+            temperature = temperature
         )
     else:
         return render_template(
@@ -110,7 +111,8 @@ def journey():
             button_states=state.get_all_button_states(),
             message=message,
             dropdown1 = llm,
-            dropdown2 = image_gen
+            dropdown2 = image_gen,
+            temperature = temperature
         )
 
 @app.route('/reset')

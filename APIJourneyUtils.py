@@ -5,12 +5,12 @@ class APIJourneyUtils:
         self.LLM_connections = {}
         self.ImageGen_connections = {}
 
-    def setup_LLM_connection(self, model_name):
+    def setup_LLM_connection(self, model_name, temp):
         if model_name not in self.LLM_connections:
             if model_name == 'o4-mini':
                 connection = OpenAiJourneyUtils()
             elif model_name == 'mistralai/Mixtral-8x7B-Instruct-v0.1':
-                connection = HuggingFaceJourneysUtils(model_name)
+                connection = HuggingFaceJourneysUtils(model_name,temp)
             self.LLM_connections[model_name] = connection
 
     def setup_ImageGen_connection(self, model_name):

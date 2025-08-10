@@ -21,7 +21,7 @@ class HuggingFaceJourneysUtils:
     REFRESH_MESSAGE = (
         "\n\n Storyteller, Please try to end the story NOW!"
     )
-    def __init__(self, model_name: str):
+    def __init__(self, model_name: str, temp: float = 1):
         if model_name not in self.SUPPORTED_MODELS:
             raise ValueError(f"Unsupported model: {model_name}")
         
@@ -33,6 +33,7 @@ class HuggingFaceJourneysUtils:
         self.interactions_count = 0
         self.output_dir = self.OUTPUT_DIR
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.temp = temp
 
     def get_client(self) -> InferenceClient:
         return self.client
@@ -64,7 +65,8 @@ class HuggingFaceJourneysUtils:
         try:
             completion = self.client.chat.completions.create(
                 model=model_name,
-                messages=message_history
+                messages=message_history,
+                temperature= self.temp
             )
             reply_content = completion.choices[0].message.content
                 

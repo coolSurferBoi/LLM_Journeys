@@ -4,7 +4,6 @@ class APIJourneyUtils:
     def __init__(self):
         self.LLM_connections = {}
         self.ImageGen_connections = {}
-        
 
     def setup_LLM_connection(self, model_name):
         if model_name not in self.LLM_connections:

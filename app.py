@@ -1,12 +1,13 @@
 from flask import Flask
 import re
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, g
 from APIJourneyUtils import APIJourneyUtils
 from LLMJourneyState import LLMJourneyState
+import uuid
 
 app = Flask(__name__)
 app.secret_key = "mysecretkey"
-api_obj = APIJourneyUtils()
+api_obj_store = {}
 
 INITIAL_PROMPT = """You are an interactive story game bot. Present a fantastical scenario where the user chooses from 3 options.
 After each choice, continue the story and offer 3 new options. Make sure you keep the story to a maximum of 5 steps/selections.
@@ -20,10 +21,23 @@ def init_session_state():
     ]
     session['button_messages'] = {}
 
+@app.before_request
+def load_api_obj():
+    game_id = session.get('game_id')
+    if not game_id or game_id not in api_obj_store:
+        # Create new game session and api_obj
+        game_id = str(uuid.uuid4())
+        session['game_id'] = game_id
+        api_obj_store[game_id] = APIJourneyUtils()
+    g.api_obj = api_obj_store[game_id]
+
 def process_reply(state: LLMJourneyState, reply_content: str):
     """Extracts story and options from reply and updates the button state."""
     text = reply_content.split("Option 1")[0]
-    options = re.findall(r"Option \d:.*", reply_content)
+    raw_options = re.findall(r"Option \d:.*", reply_content)[:3]
+    # Remove 'Option N: ' prefix from each option string
+    options = [re.sub(r"Option \d:\s*", "", opt) for opt in raw_options]
+    
     state.reset_message_states()
     state.setup_button_messages(options)
     state.reset_button_states()
@@ -33,6 +47,8 @@ def process_reply(state: LLMJourneyState, reply_content: str):
 def home():
     llm_options = ["o4-mini","mistralai/Mixtral-8x7B-Instruct-v0.1"]
     image_gen_options = ["dall-e-3","black-forest-labs/FLUX.1-dev"]
+    # Initialize session and local state manager
+    init_session_state()
     return render_template('home.html', llm_options=llm_options, image_gen_options=image_gen_options)
 
 @app.route('/journey', methods=['GET', 'POST'])
@@ -42,12 +58,9 @@ def journey():
 
     llm = request.args.get('llm') 
     image_gen = request.args.get('image_gen')
-    api_obj.setup_LLM_connection(llm)
-    api_obj.setup_ImageGen_connection(image_gen)
+    g.api_obj.setup_LLM_connection(llm)
+    g.api_obj.setup_ImageGen_connection(image_gen)
 
-    # Initialize session and local state manager
-    if 'message_history' not in session:
-        init_session_state()
     state = LLMJourneyState()
     state.set_button_messages(session.get('button_messages', {}))
     state.reset_button_states()
@@ -63,17 +76,17 @@ def journey():
         state.setup_button_state(button_name)
         message = state.get_button_message(button_name)
 
-        reply_content, message_history = api_obj.chat(llm,message, message_history)
+        reply_content, message_history = g.api_obj.chat(llm,message, message_history)
         text = process_reply(state, reply_content)
         
     # Handle GET (initial load)
     else:
-        reply_content, message_history = api_obj.chat(llm,"Begin", message_history)
+        reply_content, message_history = g.api_obj.chat(llm,"Begin", message_history)
         text = process_reply(state, reply_content)
-    image_url = api_obj.get_img(image_gen,text)
+    image_url = g.api_obj.get_img(image_gen,text)
     session['message_history'] = message_history
     session['button_messages'] = state.get_all_button_messages()
-    print(f'Number of Selections : {api_obj.get_interaction_count(llm)}')
+    print(state.get_all_button_messages())
     if not state.get_all_button_messages():
         return render_template(
             'journey.html',
@@ -99,6 +112,13 @@ def journey():
             dropdown1 = llm,
             dropdown2 = image_gen
         )
+
+@app.route('/reset')
+def reset_game():
+    api_obj_store.clear()
+    game_id = session.get('game_id')
+    api_obj_store[game_id] = APIJourneyUtils()  # fresh instance
+    return redirect('/')
 
 if __name__ == "__main__":
     app.run(debug=True)

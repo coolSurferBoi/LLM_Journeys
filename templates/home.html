@@ -21,6 +21,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
+            width: 350px;
         }
 
         select {
@@ -57,6 +58,46 @@
         .button:hover {
             background-color: #0056b3;
         }
+
+        /* Slider styling */
+        .slider-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 15px;
+            background: linear-gradient(to right, #4CAF50 0%, #4CAF50 33%, #FFC107 33%, #FFC107 66%, #F44336 66%, #F44336 100%);
+            border-radius: 8px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #222;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        input[type=range]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #222;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        #tempLabel {
+            font-weight: bold;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -84,10 +125,79 @@
                     {% endfor %}
                 </select>
             </div>
+<!-- Temperature Slider -->
+<div class="slider-container">
+    <label for="temperature">Temperature: <span id="temperatureValue">1.0</span></label>
+    <input type="range" id="temperature" name="temperature" min="0" max="1.4" step="0.1" value="1.0">
+    <div id="tempLabel">Mid Creativity</div>
+</div>
 
-            <button type="submit" class="button">Go to Journey Page</button>
-        </form>
-    </div>
+<button type="submit" class="button">Go to Journey Page</button>
+</form>
+</div>
+
+<script>
+    const slider = document.getElementById("temperature");
+    const tempValue = document.getElementById("temperatureValue");
+    const tempLabel = document.getElementById("tempLabel");
+    const llmSelect = document.getElementById("llm");
+
+    function updateSliderColor(value) {
+        let percent = (value / 1.4) * 100; // percent of slider filled
+
+        let color;
+        if (value < 0.8) {
+            color = '#4CAF50'; // green
+        } else if (value >= 0.8 && value <= 1.0) {
+            color = '#FFC107'; // yellow
+        } else {
+            color = '#F44336'; // red
+        }
+
+        slider.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${percent}%, #ddd ${percent}%, #ddd 100%)`;
+    }
+
+    function updateTempLabel(value) {
+        tempValue.textContent = value.toFixed(1);
+
+        if (value < 0.8) {
+            tempLabel.textContent = "Low Creativity";
+            tempLabel.style.color = "#4CAF50";  // green
+        } else if (value >= 0.8 && value <= 1.0) {
+            tempLabel.textContent = "Mid Creativity";
+            tempLabel.style.color = "#FFC107";  // yellow
+        } else {
+            tempLabel.textContent = "Chaos Mode ⚠️ (Unpredictable)";
+            tempLabel.style.color = "#F44336";  // red
+        }
+    }
+
+    // Update slider label and color on input
+    slider.addEventListener("input", () => {
+        const val = parseFloat(slider.value);
+        updateTempLabel(val);
+        updateSliderColor(val);
+    });
+
+    // Handle model change
+    llmSelect.addEventListener("change", () => {
+        if (llmSelect.value === "o4-mini") {
+            slider.value = 1.0;
+            updateTempLabel(1.0);
+            updateSliderColor(1.0);
+            slider.disabled = true;
+            slider.style.opacity = 0.5;
+        } else {
+            slider.disabled = false;
+            slider.style.opacity = 1;
+            updateSliderColor(parseFloat(slider.value));
+        }
+    });
+
+    // Initialize on page load
+    llmSelect.dispatchEvent(new Event("change"));
+</script>
+
 
 </body>
 </html>
